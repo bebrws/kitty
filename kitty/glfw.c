@@ -4,6 +4,8 @@
  * Distributed under terms of the GPL3 license.
  */
 
+// #include <AppKit/AppKit.h>
+
 #include "state.h"
 #include "fonts.h"
 #include "monotonic.h"
@@ -540,6 +542,9 @@ native_window_handle(GLFWwindow *w) {
     return Py_None;
 }
 
+
+void bbsetup_fs_handler(void *w);
+
 static PyObject*
 create_os_window(PyObject UNUSED *self, PyObject *args) {
     int x = -1, y = -1;
@@ -681,6 +686,9 @@ create_os_window(PyObject UNUSED *self, PyObject *args) {
     glfwSetWindowFocusCallback(glfw_window, window_focus_callback);
     glfwSetWindowOcclusionCallback(glfw_window, window_occlusion_callback);
     glfwSetWindowIconifyCallback(glfw_window, window_iconify_callback);
+    
+    bbsetup_fs_handler(glfwGetCocoaWindow(glfw_window));
+    
     // missing maximize/restore callback
     glfwSetFramebufferSizeCallback(glfw_window, framebuffer_size_callback);
     glfwSetLiveResizeCallback(glfw_window, live_resize_callback);

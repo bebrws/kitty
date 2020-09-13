@@ -263,7 +263,7 @@ def init_env(
         cppflags.append('-DDEBUG_{}'.format(el.upper().replace('-', '_')))
     cflags_ = os.environ.get(
         'OVERRIDE_CFLAGS', (
-            '-Wextra {} -Wno-missing-field-initializers -Wall -Wstrict-prototypes {}'
+            '-Wextra {} -Wno-missing-field-initializers -Wno-unused-parameter -Wno-deprecated-declarations -Wall -Wstrict-prototypes {}'
             ' -pedantic-errors -Werror {} {} -fwrapv {} {} -pipe {} -fvisibility=hidden {}'
         ).format(
             float_conversion,
@@ -281,7 +281,7 @@ def init_env(
     )
     ldflags_ = os.environ.get(
         'OVERRIDE_LDFLAGS',
-        '-Wall ' + ' '.join(sanitize_args) + ('' if debug else ' -O3')
+        '-Wno-unused-parameter -Wno-deprecated-declarations -Wall ' + ' '.join(sanitize_args) + ('' if debug else ' -O3')
     )
     ldflags = shlex.split(ldflags_)
     ldflags.append('-shared')
@@ -350,7 +350,7 @@ def kitty_env() -> Env:
     lcms2 = pkg_config('lcms2', '--libs')
     ans.ldpaths += pylib + platform_libs + gl_libs + libpng + lcms2
     if is_macos:
-        ans.ldpaths.extend('-framework Cocoa'.split())
+        ans.ldpaths.extend('-framework Cocoa -framework AppKit -framework Carbon'.split())
     elif not is_openbsd:
         ans.ldpaths += ['-lrt']
         if '-ldl' not in ans.ldpaths:
@@ -626,7 +626,7 @@ def compile_c_extension(
 def find_c_files() -> Tuple[List[str], List[str]]:
     ans, headers = [], []
     d = 'kitty'
-    exclude = {'fontconfig.c', 'freetype.c', 'desktop.c'} if is_macos else {'core_text.m', 'cocoa_window.m', 'macos_process_info.c'}
+    exclude = {'fontconfig.c', 'freetype.c', 'desktop.c'} if is_macos else {'core_text.m', 'cocoa_window.m', 'bbfscreen.m',  'macos_process_info.c'}
     for x in sorted(os.listdir(d)):
         ext = os.path.splitext(x)[1]
         if ext in ('.c', '.m') and os.path.basename(x) not in exclude:
@@ -726,7 +726,7 @@ def safe_makedirs(path: str) -> None:
 
 
 def build_launcher(args: Options, launcher_dir: str = '.', bundle_type: str = 'source') -> None:
-    cflags = '-Wall -Werror -fpie'.split()
+    cflags = '-Wall -Werror -fpie -Wno-deprecated-declarations -Wno-unused-parameter'.split()
     cppflags = []
     libs: List[str] = []
     if args.profile or args.sanitize:
