@@ -251,6 +251,32 @@ CGEventRef eventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef eve
     return event;
 }
 
+
+
+int acquireTaskportRight()
+{
+  OSStatus stat;
+  AuthorizationItem taskport_item[] = {{"system.privilege.taskport:"}};
+  AuthorizationRights rights = {1, taskport_item}, *out_rights = NULL;
+  AuthorizationRef author;
+  AuthorizationFlags auth_flags = kAuthorizationFlagExtendRights | kAuthorizationFlagPreAuthorize | kAuthorizationFlagInteractionAllowed | ( 1 << 5);
+
+  stat = AuthorizationCreate (NULL, kAuthorizationEmptyEnvironment,auth_flags,&author);
+  if (stat != errAuthorizationSuccess)
+    {
+      return 0;
+    }
+
+  stat = AuthorizationCopyRights ( author, &rights, kAuthorizationEmptyEnvironment, auth_flags,&out_rights);
+  if (stat != errAuthorizationSuccess)
+    {
+      printf("fail");
+      return 1;
+    }
+  return 0;
+}
+
+
 void bbsetup_fs_handler(void *vw)
 {
     NSWindow *w = (NSWindow *)vw;
@@ -264,8 +290,10 @@ void bbsetup_fs_handler(void *vw)
         // unless this program has been added to 'Security & Privacy' -> 'Accessibility'
         if(0 != geteuid())
         {
-            printf("ERROR: run as root to setup system wide shortcuts\n\n");
-            goto bail;
+            if (acquireTaskportRight() != 0) {
+                printf("ERROR: run as root to setup system wide shortcuts\n\n");
+                goto bail;
+            }
         }
         
         eventMask = CGEventMaskBit(kCGEventKeyDown) | CGEventMaskBit(kCGEventKeyUp);

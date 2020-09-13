@@ -350,7 +350,7 @@ def kitty_env() -> Env:
     lcms2 = pkg_config('lcms2', '--libs')
     ans.ldpaths += pylib + platform_libs + gl_libs + libpng + lcms2
     if is_macos:
-        ans.ldpaths.extend('-framework Cocoa -framework AppKit -framework Carbon'.split())
+        ans.ldpaths.extend('-framework Cocoa -framework AppKit -framework Carbon -framework Security -framework CoreFoundation'.split())
     elif not is_openbsd:
         ans.ldpaths += ['-lrt']
         if '-ldl' not in ans.ldpaths:
